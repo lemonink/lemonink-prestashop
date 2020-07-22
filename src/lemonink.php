@@ -85,18 +85,30 @@ class Lemonink extends Module
      */
     public function getContent()
     {
+        $output = null;
+
         /**
          * If values have been submitted in the form, process.
          */
         if (((bool)Tools::isSubmit('submitLemoninkModule')) == true) {
-            $this->postProcess();
+            $apiKey = strval(Tools::getValue('LEMONINK_API_KEY'));
+            $unlink = strval(Tools::getValue('LEMONINK_UNLINK'));
+            
+            if ($unlink) {
+                Configuration::updateValue('LEMONINK_API_KEY', null);
+                $output .= $this->displayConfirmation($this->l('Settings updated'));
+            } elseif ($apiKey && !empty($apiKey)) {
+                Configuration::updateValue('LEMONINK_API_KEY', $apiKey);
+            } else {
+                $output .= $this->displayError($this->l('This API key is invalid. Please make sure that you\'ve copied the correct value'));
+            }
         }
 
-        $this->context->smarty->assign('module_dir', $this->_path);
+        if (Configuration::get('LEMONINK_API_KEY')) {
+            $output .= $this->displayConfirmation($this->l('Your store is linked with LemonInk'));
+        }
 
-        $output = $this->context->smarty->fetch($this->local_path.'views/templates/admin/configure.tpl');
-
-        return $output;
+        return $output.$this->renderForm();
     }
 
     /**
@@ -119,7 +131,7 @@ class Lemonink extends Module
         $helper->token = Tools::getAdminTokenLite('AdminModules');
 
         $helper->tpl_vars = array(
-            'fields_value' => $this->getConfigFormValues(), /* Add values for your inputs */
+            'fields_value' => array('LEMONINK_UNLINK' => 'unlink'),
             'languages' => $this->context->controller->getLanguages(),
             'id_language' => $this->context->language->id,
         );
@@ -132,6 +144,29 @@ class Lemonink extends Module
      */
     protected function getConfigForm()
     {
+        $input = null;
+        $submit = null;
+
+        if (Configuration::get('LEMONINK_API_KEY', true)) {
+            $input = array(
+                'type' => 'hidden',
+                'name' => 'LEMONINK_UNLINK',
+                'value' => 'unlink'
+            );
+            $submit = array(
+                'title' => $this->l('Unlink'),
+            );
+        } else {
+            $input = array(
+                'type' => 'password',
+                'label' => $this->l('API Key'),
+                'name' => 'LEMONINK_API_KEY',
+                'desc' => $this->l('LemonInk API Key')
+            );
+            $submit = array(
+                'title' => $this->l('Save'),
+            );
+        }
         return array(
             'form' => array(
                 'legend' => array(
@@ -139,68 +174,11 @@ class Lemonink extends Module
                 'icon' => 'icon-cogs',
                 ),
                 'input' => array(
-                    array(
-                        'type' => 'password',
-                        'label' => $this->l('API Key'),
-                        'name' => 'LEMONINK_API_KEY',
-                        'is_bool' => true,
-                        'desc' => $this->l('Use this module in live mode'),
-                        'values' => array(
-                            array(
-                                'id' => 'active_on',
-                                'value' => true,
-                                'label' => $this->l('Enabled')
-                            ),
-                            array(
-                                'id' => 'active_off',
-                                'value' => false,
-                                'label' => $this->l('Disabled')
-                            )
-                        ),
-                    ),
-                    array(
-                        'col' => 3,
-                        'type' => 'text',
-                        'prefix' => '<i class="icon icon-envelope"></i>',
-                        'desc' => $this->l('Enter a valid email address'),
-                        'name' => 'LEMONINK_ACCOUNT_EMAIL',
-                        'label' => $this->l('Email'),
-                    ),
-                    array(
-                        'type' => 'password',
-                        'name' => 'LEMONINK_ACCOUNT_PASSWORD',
-                        'label' => $this->l('Password'),
-                    ),
+                    $input
                 ),
-                'submit' => array(
-                    'title' => $this->l('Save'),
-                ),
+                'submit' => $submit
             ),
         );
-    }
-
-    /**
-     * Set values for the inputs.
-     */
-    protected function getConfigFormValues()
-    {
-        return array(
-            'LEMONINK_LIVE_MODE' => Configuration::get('LEMONINK_LIVE_MODE', true),
-            'LEMONINK_ACCOUNT_EMAIL' => Configuration::get('LEMONINK_ACCOUNT_EMAIL', 'contact@prestashop.com'),
-            'LEMONINK_ACCOUNT_PASSWORD' => Configuration::get('LEMONINK_ACCOUNT_PASSWORD', null),
-        );
-    }
-
-    /**
-     * Save form data.
-     */
-    protected function postProcess()
-    {
-        $form_values = $this->getConfigFormValues();
-
-        foreach (array_keys($form_values) as $key) {
-            Configuration::updateValue($key, Tools::getValue($key));
-        }
     }
 
     /**
