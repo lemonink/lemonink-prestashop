@@ -1,0 +1,14 @@
+
+#!/bin/bash
+
+echo 1
+docker exec dummy_prestashop rm -rf /tmp/lemonink-src
+echo 2
+docker exec dummy_prestashop mkdir /tmp/lemonink-src
+echo 3
+docker cp ./src dummy_prestashop:/tmp/lemonink-src
+echo 4
+docker exec dummy_prestashop chown -R www-data:www-data /tmp/lemonink-src/src
+echo 5
+docker exec dummy_prestashop rsync -a /tmp/lemonink-src/src/ /var/www/html/modules/lemonink/
+echo 7

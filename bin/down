@@ -1,0 +1,5 @@
+
+#!/bin/bash
+
+cd spec/dummy
+docker-compose down -v --remove-orphans

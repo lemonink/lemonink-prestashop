@@ -1,0 +1,29 @@
+version: '3.1'
+
+services:
+  prestashop_db:
+    image: mysql:5.7
+    restart: always
+    container_name: "prestashop_db"
+    tmpfs: "/var/lib/mysql"
+    environment:
+      MYSQL_DATABASE: prestashop
+      MYSQL_USER: exampleuser
+      MYSQL_PASSWORD: admin
+      MYSQL_RANDOM_ROOT_PASSWORD: '1'
+
+  prestashop:
+    build: .
+    restart: always
+    container_name: "dummy_prestashop"
+    tmpfs: /var/www/html
+    ports:
+      - "8080:80"
+    environment:
+      PS_INSTALL_AUTO: 1
+      DB_SERVER: prestashop_db
+      DB_USER: exampleuser
+      PS_DOMAIN: prestashop-dummy.test
+      PS_DEV_MODE: 1
+    volumes:
+      - "../src:/var/www/html/modules/lemonink"

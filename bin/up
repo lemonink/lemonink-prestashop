@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# bin/build
+cp -r src spec/dummy/lemonink
+
+cd spec/dummy
+docker-compose up -d --build --remove-orphans --force-recreate
+
+rm -rf lemonink

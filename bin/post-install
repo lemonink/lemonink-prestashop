@@ -1,0 +1,9 @@
+#!/bin/bash
+
+docker exec dummy_prestashop  mkdir -p /var/www/html/var/cache/dev
+docker exec dummy_prestashop chown -R www-data:www-data /var/www/html/var/cache
+
+docker exec dummy_prestashop mkdir -p /var/www/html/var/logs/
+docker exec dummy_prestashop chown -R www-data:www-data /var/www/html/var/logs
+
+docker exec dummy_prestashop sh -c "mv admin* admin"
