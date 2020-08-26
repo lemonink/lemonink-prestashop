@@ -28,6 +28,8 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
+require_once(dirname(__FILE__).'/LemonInkProductMaster.php');
+
 class Lemonink extends Module
 {
     protected $config_form = false;
@@ -61,19 +63,18 @@ class Lemonink extends Module
      */
     public function install()
     {
-        Configuration::updateValue('LEMONINK_LIVE_MODE', false);
-
         include(dirname(__FILE__).'/sql/install.php');
 
         return parent::install() &&
             $this->registerHook('header') &&
             $this->registerHook('backOfficeHeader') &&
+            $this->registerHook('displayAdminProductsExtra') &&
             $this->registerHook('actionProductUpdate');
     }
 
     public function uninstall()
     {
-        Configuration::deleteByName('LEMONINK_LIVE_MODE');
+        Configuration::deleteByName('LEMONINK_API_KEY');
 
         include(dirname(__FILE__).'/sql/uninstall.php');
 
@@ -201,8 +202,27 @@ class Lemonink extends Module
         $this->context->controller->addCSS($this->_path.'/views/css/front.css');
     }
 
+    public function hookDisplayAdminProductsExtra(array $params)
+    {
+        $id_product = $params['id_product'];
+        $productMaster = LemonInkProductMaster::loadByProductId($id_product);
+        $this->context->smarty->assign(array(
+            'master_id' => $productMaster->master_id
+        ));
+        return $this->display(__FILE__, 'views/templates/admin/product_form.tpl');
+    }
+
     public function hookActionProductUpdate()
     {
-        /* Place your code here. */
+        $id_product = Tools::getValue('id_product');
+        $productMaster = LemonInkProductMaster::loadByProductId($id_product);
+        $productMaster->master_id = Tools::getValue('lemonink_product_master_id');
+        $productMaster->id_product = $id_product;
+
+        if(!empty($productMaster) && isset($productMaster->id)){
+            $productMaster->update();
+        } else {
+            $productMaster->add();
+        }
     }
 }
