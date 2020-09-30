@@ -1,34 +1,10 @@
 <?php
-/**
-* 2007-2020 PrestaShop
-*
-* NOTICE OF LICENSE
-*
-* This source file is subject to the Academic Free License (AFL 3.0)
-* that is bundled with this package in the file LICENSE.txt.
-* It is also available through the world-wide-web at this URL:
-* http://opensource.org/licenses/afl-3.0.php
-* If you did not receive a copy of the license and are unable to
-* obtain it through the world-wide-web, please send an email
-* to license@prestashop.com so we can send you a copy immediately.
-*
-* DISCLAIMER
-*
-* Do not edit or add to this file if you wish to upgrade PrestaShop to newer
-* versions in the future. If you wish to customize PrestaShop for your
-* needs please refer to http://www.prestashop.com for more information.
-*
-*  @author    PrestaShop SA <contact@prestashop.com>
-*  @copyright 2007-2020 PrestaShop SA
-*  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
-*  International Registered Trademark & Property of PrestaShop SA
-*/
 
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once __DIR__.'/vendor/autoload.php';
+require_once dirname(__FILE__).'/vendor/autoload.php';
 
 use PrestaShop\PrestaShop\Adapter\Entity\FileLogger;
 
@@ -52,16 +28,18 @@ class LemonInk extends Module
 
         parent::__construct();
 
-        $this->displayName = $this->l('LemonInk');
-        $this->description = $this->l('9Descasdaasdasdasd asd asd asd asd asd asd asd');
+        $this->displayName = $this->l('LemonInk Ebook Watermarking for PrestaShop');
+        $this->description = $this->l(
+            'Watermark ebooks in EPUB, MOBI and PDF in your PrestaShop store using the LemonInk service.'
+        );
 
-        $this->confirmUninstall = $this->l('Are you sure? Files set up to use LemonInk won\'t be available for purchase anymore.');
+        $this->confirmUninstall = $this->l('Are you sure? Files set up to use LemonInk ' .
+            'won\'t be available for purchase anymore.');
 
         $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
 
         $this->logger = new FileLogger();
-        $this->logger->setFilename(_PS_ROOT_DIR_ . '/var/logs/lemonink.log');
-        $this->logger->logInfo('Be careful!');
+        // $this->logger->setFilename(_PS_ROOT_DIR_ . '/var/logs/lemonink.log');
     }
 
     public function install()
@@ -99,8 +77,8 @@ class LemonInk extends Module
          * If values have been submitted in the form, process.
          */
         if (((bool)Tools::isSubmit('submitLemoninkModule')) == true) {
-            $apiKey = strval(Tools::getValue('LEMONINK_API_KEY'));
-            $unlink = strval(Tools::getValue('LEMONINK_UNLINK'));
+            $apiKey = (string)Tools::getValue('LEMONINK_API_KEY');
+            $unlink = (string)Tools::getValue('LEMONINK_UNLINK');
             
             if ($unlink) {
                 Configuration::updateValue('LEMONINK_API_KEY', null);
@@ -108,7 +86,8 @@ class LemonInk extends Module
             } elseif ($apiKey && !empty($apiKey)) {
                 Configuration::updateValue('LEMONINK_API_KEY', $apiKey);
             } else {
-                $output .= $this->displayError($this->l('This API key is invalid. Please make sure that you\'ve copied the correct value'));
+                $output .= $this->displayError($this->l('This API key is invalid.
+                    Please make sure that you\'ve copied the correct value'));
             }
         }
 
@@ -229,36 +208,27 @@ class LemonInk extends Module
         $productMaster->master_id = Tools::getValue('lemonink_product_master_id');
         $productMaster->id_product = $id_product;
 
-        if(isset($productMaster->id)){
+        if (isset($productMaster->id)) {
             $productMaster->update();
         } else {
             $productMaster->add();
         }
     }
 
-    public function hookActionOrderStatusPostUpdate($params) 
+    public function hookActionOrderStatusPostUpdate($params)
     {
-        $this->logger->logInfo("New Order params ");
         $newOrderStatus = $params["newOrderStatus"];
-        $this->logger->logInfo("New Order status ".$newOrderStatus->id);
         
         if ($newOrderStatus->id == (int)Configuration::get('LEMONINK_WATERMARKING_ORDER_STATE')) {
             $id_order = $params["id_order"];
 
             $order = new Order($id_order);
 
-            $this->logger->logInfo("Order ID " . $id_order . " " . var_export($order, true));
-
             foreach ($order->getProducts() as $id_order_detail => $product) {
-                $this->logger->logInfo("Order Detail ID ".$id_order_detail . " " .var_export($product, true));
                 if (!Transaction::getIdFromIdOrderDetail($id_order_detail)) {
                     $productMaster = ProductMaster::loadByProductId($product['product_id']);
 
                     if (!empty($productMaster)) {
-                        $this->logger->logInfo("Product Master ID ".$productMaster->id);
-                        $service = new LemonInk\Service(Configuration::get('LEMONINK_API_KEY'));
-                        $service2 = new \GuzzleHttp\Client(["base_url" => "https://api.lemonink.co/v1/"]);
-                        $this->logger->logInfo("Guzzle service ".var_export($service2, true));
                         $remoteMaster = $this->getApiClient()->find('master', $productMaster->master_id);
 
                         $customer = new Customer((int) $order->id_customer);
@@ -266,7 +236,9 @@ class LemonInk extends Module
 
                         $remoteTransaction = new LemonInk\Models\Transaction();
                         $remoteTransaction->setMasterId($remoteMaster->getId());
-                        $remoteTransaction->setWatermarkValue($this->watermarkValue($id_order, $customer->email, $orderLanguage->locale));
+                        $remoteTransaction->setWatermarkValue(
+                            $this->watermarkValue($id_order, $customer->email, $orderLanguage->locale)
+                        );
 
                         $this->getApiClient()->save($remoteTransaction);
                         
@@ -329,16 +301,17 @@ class LemonInk extends Module
 
         $html = '';
 
-        if (!empty($products)) {    
+        if (!empty($products)) {
             $html .= '<ul>';
-                foreach ($products as $product) {
-                    $html .= '<li>';
-                    $html .= $product['product_name'] . ': ';
-                    foreach ($product['lemoninkTransaction']->getFormats() as $format) {
-                        $html .= '<a href="' . $product['lemoninkTransaction']->getUrl($format) . '">' . strtoupper($format) . '</a> ';
-                    }
-                    $html .= '</li>';
+            foreach ($products as $product) {
+                $html .= '<li>';
+                $html .= $product['product_name'] . ': ';
+                foreach ($product['lemoninkTransaction']->getFormats() as $format) {
+                    $html .= '<a href="' . $product['lemoninkTransaction']->getUrl($format) .
+                        '">' . Tools::strtoupper($format) . '</a> ';
                 }
+                $html .= '</li>';
+            }
             $html .= '</ul>';
         }
 
@@ -364,13 +337,14 @@ class LemonInk extends Module
 
     private function watermarkValue($orderId, $email, $language)
     {
-        $value = $this->l('Order #%s (%s)', false, $locale);
+        $value = $this->l('Order #%s (%s)', false, $language);
         return sprintf($value, $orderId, $this->obfuscateEmail($email));
     }
 
-    private function obfuscateEmail($email) {
+    private function obfuscateEmail($email)
+    {
         $parts = explode('@', $email);
-        $parts[0] = substr($parts[0], 0, 1) . '***' . substr($parts[0], -1, 1);
+        $parts[0] = Tools::substr($parts[0], 0, 1) . '***' . Tools::substr($parts[0], -1, 1);
         return implode('@', $parts);
     }
 

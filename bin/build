@@ -1,0 +1,24 @@
+
+#!/bin/bash
+
+mkdir build
+rm -rf build/*
+cp -r src/ build/lemonink
+cp LICENSE build/lemonink
+cd build/lemonink
+rm -rf vendor
+find . -name .DS_Store -exec rm {} \; 
+composer install -o --no-dev
+composer dump-autoload -o --no-dev
+cd ../..
+php src/vendor/bin/autoindex prestashop:add:index build/
+bundle exec copyright-header \
+  --license-file license-header-template \
+  --syntax license-syntax.yml \
+  --add-path build/lemonink \
+  --remove-path build/lemonink/vendor/ \
+  --output-dir ./
+cd build
+zip -q -r -X lemonink.zip lemonink
+
+

@@ -1,0 +1,28 @@
+php:
+  ext: ['.php']
+  after: [ '<?php' ]
+  comment:
+    open:   '/**\n'
+    close:  ' **/\n'
+    prefix: ' * '
+
+tpl:
+  ext: ['.tpl']
+  comment:
+    open:   '{*\n'
+    close:  '*}\n'
+    prefix: '* '
+
+css:
+  ext: ['.css']
+  comment:
+    open:   '/**\n'
+    close:  ' **/\n'
+    prefix: ' * '
+
+js:
+  ext: ['.js']
+  comment:
+    open:   '/**\n'
+    close:  ' **/\n'
+    prefix: ' * '

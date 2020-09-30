@@ -1,2 +1,4 @@
 spec/src
 src/vendor
+/build
+.DS_Store
