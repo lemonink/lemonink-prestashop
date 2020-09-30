@@ -1,0 +1,30 @@
+{
+	"name": "lemonink/lemonink",
+  "description": "PrestaShop module for watermarking ebooks using LemonInk",
+  "type": "prestashop-module",
+	"homepage": "https://lemonink.co/",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "LemonInk",
+			"homepage": "https://lemonink.co/"
+		}
+	],
+	"minimum-stability": "dev",
+	"require": {
+		"php": ">=5.6.0",
+		"lemonink/lemonink-php": ">=0.2"
+	},
+	"autoload": {
+    "psr-4": { "PrestaShop\\Module\\LemonInk\\" : "src/" },
+    "classmap": [
+      "lemonink.php",
+      "ProductMaster.php",
+      "Transaction.php"
+    ]
+  },
+  "config": {
+    "preferred-install": "dist",
+    "prepend-autoloader": false
+  }
+}

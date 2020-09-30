@@ -28,11 +28,14 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once(dirname(__FILE__).'/LemonInkProductMaster.php');
+require_once __DIR__.'/vendor/autoload.php';
 
-class Lemonink extends Module
+use PrestaShop\PrestaShop\Adapter\Entity\FileLogger;
+
+class LemonInk extends Module
 {
     protected $config_form = false;
+    protected $logger = null;
 
     public function __construct()
     {
@@ -55,26 +58,30 @@ class Lemonink extends Module
         $this->confirmUninstall = $this->l('Are you sure? Files set up to use LemonInk won\'t be available for purchase anymore.');
 
         $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
+
+        $this->logger = new FileLogger();
+        $this->logger->setFilename(_PS_ROOT_DIR_ . '/var/logs/lemonink.log');
+        $this->logger->logInfo('Be careful!');
     }
 
-    /**
-     * Don't forget to create update methods if needed:
-     * http://doc.prestashop.com/display/PS16/Enabling+the+Auto-Update
-     */
     public function install()
     {
         include(dirname(__FILE__).'/sql/install.php');
 
         return parent::install() &&
+            Configuration::updateValue('LEMONINK_WATERMARKING_ORDER_STATE', 2) &&
             $this->registerHook('header') &&
             $this->registerHook('backOfficeHeader') &&
             $this->registerHook('displayAdminProductsExtra') &&
-            $this->registerHook('actionProductUpdate');
+            $this->registerHook('actionOrderStatusPostUpdate') &&
+            $this->registerHook('actionProductUpdate') &&
+            $this->registerHook('displayOrderDetail');
     }
 
     public function uninstall()
     {
         Configuration::deleteByName('LEMONINK_API_KEY');
+        Configuration::deleteByName('LEMONINK_WATERMARKING_ORDER_STATE');
 
         include(dirname(__FILE__).'/sql/uninstall.php');
 
@@ -205,7 +212,7 @@ class Lemonink extends Module
     public function hookDisplayAdminProductsExtra(array $params)
     {
         $id_product = $params['id_product'];
-        $productMaster = LemonInkProductMaster::loadByProductId($id_product);
+        $productMaster = ProductMaster::loadByProductId($id_product);
         $this->context->smarty->assign(array(
             'master_id' => $productMaster->master_id
         ));
@@ -215,14 +222,160 @@ class Lemonink extends Module
     public function hookActionProductUpdate()
     {
         $id_product = Tools::getValue('id_product');
-        $productMaster = LemonInkProductMaster::loadByProductId($id_product);
+        $productMaster = ProductMaster::loadByProductId($id_product);
+        if (empty($productMaster)) {
+            $productMaster = new ProductMaster();
+        }
         $productMaster->master_id = Tools::getValue('lemonink_product_master_id');
         $productMaster->id_product = $id_product;
 
-        if(!empty($productMaster) && isset($productMaster->id)){
+        if(isset($productMaster->id)){
             $productMaster->update();
         } else {
             $productMaster->add();
         }
+    }
+
+    public function hookActionOrderStatusPostUpdate($params) 
+    {
+        $this->logger->logInfo("New Order params ");
+        $newOrderStatus = $params["newOrderStatus"];
+        $this->logger->logInfo("New Order status ".$newOrderStatus->id);
+        
+        if ($newOrderStatus->id == (int)Configuration::get('LEMONINK_WATERMARKING_ORDER_STATE')) {
+            $id_order = $params["id_order"];
+
+            $order = new Order($id_order);
+
+            $this->logger->logInfo("Order ID " . $id_order . " " . var_export($order, true));
+
+            foreach ($order->getProducts() as $id_order_detail => $product) {
+                $this->logger->logInfo("Order Detail ID ".$id_order_detail . " " .var_export($product, true));
+                if (!Transaction::getIdFromIdOrderDetail($id_order_detail)) {
+                    $productMaster = ProductMaster::loadByProductId($product['product_id']);
+
+                    if (!empty($productMaster)) {
+                        $this->logger->logInfo("Product Master ID ".$productMaster->id);
+                        $service = new LemonInk\Service(Configuration::get('LEMONINK_API_KEY'));
+                        $service2 = new \GuzzleHttp\Client(["base_url" => "https://api.lemonink.co/v1/"]);
+                        $this->logger->logInfo("Guzzle service ".var_export($service2, true));
+                        $remoteMaster = $this->getApiClient()->find('master', $productMaster->master_id);
+
+                        $customer = new Customer((int) $order->id_customer);
+                        $orderLanguage = new Language((int) $order->id_lang);
+
+                        $remoteTransaction = new LemonInk\Models\Transaction();
+                        $remoteTransaction->setMasterId($remoteMaster->getId());
+                        $remoteTransaction->setWatermarkValue($this->watermarkValue($id_order, $customer->email, $orderLanguage->locale));
+
+                        $this->getApiClient()->save($remoteTransaction);
+                        
+                        $transaction = new Transaction();
+                        $transaction->id_order_detail = $id_order_detail;
+                        $transaction->transaction_id = $remoteTransaction->getId();
+                        $transaction->token = $remoteTransaction->getToken();
+                        $transaction->formats = implode(',', $remoteMaster->getFormats());
+                        $transaction->save();
+                    }
+                }
+            }
+
+            $this->sendDownloadLinks($order);
+        }
+    }
+
+    protected function sendDownloadLinks($order)
+    {
+        $links = $this->getDownloadLinks($order);
+
+        if (!empty($links)) {
+            $customer = new Customer((int) $order->id_customer);
+
+            $data = array(
+                '{lastname}' => $customer->lastname,
+                '{firstname}' => $customer->firstname,
+                '{id_order}' => (int) $order->id,
+                '{order_name}' => $order->getUniqReference(),
+                '{nbProducts}' => count(Transaction::getProductsByOrder($order)),
+                '{virtualProducts}' => $links,
+            );
+
+            $orderLanguage = new Language((int) $order->id_lang);
+            Mail::Send(
+                (int) $order->id_lang,
+                'download_product',
+                $this->l(
+                    'The virtual product that you bought is available for download',
+                    false,
+                    $orderLanguage->locale
+                ),
+                $data,
+                $customer->email,
+                $customer->firstname . ' ' . $customer->lastname,
+                null,
+                null,
+                null,
+                null,
+                _PS_MAIL_DIR_,
+                false,
+                (int) $order->id_shop
+            );
+        }
+    }
+
+    protected function getDownloadLinks($order)
+    {
+        $products = Transaction::getProductsByOrder($order);
+
+        $html = '';
+
+        if (!empty($products)) {    
+            $html .= '<ul>';
+                foreach ($products as $product) {
+                    $html .= '<li>';
+                    $html .= $product['product_name'] . ': ';
+                    foreach ($product['lemoninkTransaction']->getFormats() as $format) {
+                        $html .= '<a href="' . $product['lemoninkTransaction']->getUrl($format) . '">' . strtoupper($format) . '</a> ';
+                    }
+                    $html .= '</li>';
+                }
+            $html .= '</ul>';
+        }
+
+        return $html;
+    }
+
+    public function hookDisplayOrderDetail($params)
+    {
+        $order = $params["order"];
+        $links = $this->getDownloadLinks($order);
+
+        $html = '';
+
+        if (!empty($links)) {
+            $html .= '<article id="lemonink-downloads" class="box">';
+                $html .= '<h4>' . $this->l('Your downloads') . '</h4>';
+                $html .= $links;
+            $html .= '</article>';
+        }
+
+        return $html;
+    }
+
+    private function watermarkValue($orderId, $email, $language)
+    {
+        $value = $this->l('Order #%s (%s)', false, $locale);
+        return sprintf($value, $orderId, $this->obfuscateEmail($email));
+    }
+
+    private function obfuscateEmail($email) {
+        $parts = explode('@', $email);
+        $parts[0] = substr($parts[0], 0, 1) . '***' . substr($parts[0], -1, 1);
+        return implode('@', $parts);
+    }
+
+    private function getApiClient()
+    {
+        return new LemonInk\Client(Configuration::get('LEMONINK_API_KEY'));
     }
 }

@@ -24,11 +24,12 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
+use PrestaShop\Module\LemonInk;
 
 /**
  * Class ProductMaster.
  */
-class LemonInkProductMaster extends ObjectModel
+class ProductMaster extends ObjectModel
 {
     /** @var int Product ID which master belongs to */
     public $id_product = null;
@@ -56,7 +57,7 @@ class LemonInkProductMaster extends ObjectModel
      *
      * @param int $id_product Product ID
      *
-     * @return int $id_lemonink_product_master ProductMaster ID
+     * @return ProductMaster $id_lemonink_product_master ProductMaster
      */
     public static function loadByProductId($id_product)
     {
@@ -67,6 +68,8 @@ class LemonInkProductMaster extends ObjectModel
 
         $id_lemonink_product_master = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
 
-        return new LemonInkProductMaster($id_lemonink_product_master);
+        if (!empty($id_lemonink_product_master)) {
+            return new ProductMaster($id_lemonink_product_master);
+        }
     }
 }
