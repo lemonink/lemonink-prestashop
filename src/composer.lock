@@ -223,12 +223,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/lemonink/lemonink-php.git",
-                "reference": "808dc8ce0027d283e0c9c3e2383ba39314ac5c18"
+                "reference": "bf158b1be3758b0879007e7e9fa9465e1c50c018"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/lemonink/lemonink-php/zipball/808dc8ce0027d283e0c9c3e2383ba39314ac5c18",
-                "reference": "808dc8ce0027d283e0c9c3e2383ba39314ac5c18",
+                "url": "https://api.github.com/repos/lemonink/lemonink-php/zipball/bf158b1be3758b0879007e7e9fa9465e1c50c018",
+                "reference": "bf158b1be3758b0879007e7e9fa9465e1c50c018",
                 "shasum": ""
             },
             "require": {
@@ -261,7 +261,7 @@
                 "api",
                 "watermarking"
             ],
-            "time": "2020-09-23T09:41:01+00:00"
+            "time": "2020-10-28T14:14:16+00:00"
         },
         {
             "name": "paragonie/random_compat",

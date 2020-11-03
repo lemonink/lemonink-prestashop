@@ -14,4 +14,3 @@ $_MODULE['<{lemonink}prestashop>lemonink_56201426a966f8179e06c59d11c8fb6d'] = 'L
 $_MODULE['<{lemonink}prestashop>lemonink_c9cc8cce247e49bae79f15173ce97354'] = 'Save';
 $_MODULE['<{lemonink}prestashop>lemonink_f4f70727dc34561dfde1a3c529b6205c'] = 'Settings';
 $_MODULE['<{lemonink}prestashop>lemonink_f83dea9405cc68eacb68a3224e51f968'] = 'Your downloads';
-$_MODULE['<{lemonink}prestashop>lemonink_e73a037cc098ac582b881a4414307f4d'] = 'Order #%s (%s)';

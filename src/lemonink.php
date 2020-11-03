@@ -234,10 +234,16 @@ class LemonInk extends Module
                         $customer = new Customer((int) $order->id_customer);
                         $orderLanguage = new Language((int) $order->id_lang);
 
+                        $remoteUser = $this->getApiClient()->find('user', 'me');
+
                         $remoteTransaction = new LemonInk\Models\Transaction();
                         $remoteTransaction->setMasterId($remoteMaster->getId());
-                        $remoteTransaction->setWatermarkValue(
-                            $this->watermarkValue($id_order, $customer->email, $orderLanguage->locale)
+                        $remoteTransaction->setWatermarkParams(
+                            $this->watermarkParams(
+                                $remoteUser->getWatermarkParams(),
+                                $id_order,
+                                $customer
+                            )
                         );
 
                         $this->getApiClient()->save($remoteTransaction);
@@ -335,10 +341,28 @@ class LemonInk extends Module
         return $html;
     }
 
-    private function watermarkValue($orderId, $email, $language)
+    private function watermarkParams($paramNames, $orderId, $customer)
     {
-        $value = $this->l('Order #%s (%s)', false, $language);
-        return sprintf($value, $orderId, $this->obfuscateEmail($email));
+        $params = array();
+
+        foreach ($paramNames as $paramName) {
+            $params[$paramName] = $this->watermarkParam($paramName, $orderId, $customer);
+        }
+
+        return $params;
+    }
+
+    private function watermarkParam($paramName, $orderId, $customer) {
+        switch ( $paramName ) {
+            case 'order_number':
+                return $orderId;
+            case 'obfuscated_customer_email':
+                return $this->obfuscateEmail($customer->email);
+            case 'customer_email':
+                return $customer->email;
+            case 'customer_name':
+                return implode(" ", array($customer->firstname, $customer->lastname));
+        }
     }
 
     private function obfuscateEmail($email)
