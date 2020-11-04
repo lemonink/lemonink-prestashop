@@ -17,7 +17,7 @@ class LemonInk extends Module
     {
         $this->name = 'lemonink';
         $this->tab = 'others';
-        $this->version = '0.0.1';
+        $this->version = '0.1.0';
         $this->author = 'LemonInk';
         $this->need_instance = 0;
 
