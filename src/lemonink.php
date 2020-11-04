@@ -209,8 +209,12 @@ class LemonInk extends Module
         $productMaster->id_product = $id_product;
 
         if (isset($productMaster->id)) {
-            $productMaster->update();
-        } else {
+            if (empty($productMaster->master_id)) {
+                $productMaster->delete();
+            } else {
+                $productMaster->update();
+            }
+        } else if (!empty($productMaster->master_id)) {
             $productMaster->add();
         }
     }
