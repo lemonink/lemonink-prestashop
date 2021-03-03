@@ -1,7 +1,6 @@
 <?php
 
 use PrestaShop\Module\LemonInk;
-use PrestaShop\PrestaShop\Adapter\Presenter\Order\OrderLazyArray;
 
 /**
  * Class Transaction.
@@ -61,9 +60,7 @@ class Transaction extends ObjectModel
      */
     public static function getProductsByOrder($order)
     {
-        $orderLazyArray = new OrderLazyArray($order);
-
-        $products = $orderLazyArray->getProducts();
+        $products = $order->getCartProducts();
         $result = [];
 
         foreach ($products as $product) {
