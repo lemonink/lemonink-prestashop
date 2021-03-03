@@ -245,7 +245,7 @@ class LemonInk extends Module
                         $remoteTransaction->setWatermarkParams(
                             $this->watermarkParams(
                                 $remoteUser->getWatermarkParams(),
-                                $id_order,
+                                $order->getUniqReference(),
                                 $customer
                             )
                         );
