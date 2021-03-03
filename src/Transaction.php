@@ -46,7 +46,7 @@ class Transaction extends ObjectModel
         $query = new DbQuery();
         $query->select('id_lemonink_transaction');
         $query->from('lemonink_transactions');
-        $query->where('id_order_detail = ' . $id_order_detail);
+        $query->where('id_order_detail = ' . (int) $id_order_detail);
 
         return Db::getInstance()->getValue($query);
     }

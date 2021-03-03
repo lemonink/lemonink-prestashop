@@ -40,7 +40,7 @@ class ProductMaster extends ObjectModel
         $query = new DbQuery();
         $query->select('id_lemonink_product_master');
         $query->from('lemonink_product_masters');
-        $query->where('id_product = ' . $id_product);
+        $query->where('id_product = ' . (int) $id_product);
 
         $id_lemonink_product_master = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
 
