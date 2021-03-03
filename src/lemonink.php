@@ -20,6 +20,7 @@ class LemonInk extends Module
         $this->version = '0.1.0';
         $this->author = 'LemonInk';
         $this->need_instance = 0;
+        $this->module_key = '35176e9a54aa1c6b1404e6b0961b287a';
 
         /**
          * Set $this->bootstrap to true if your module is compliant with bootstrap (PrestaShop 1.6)
@@ -38,7 +39,7 @@ class LemonInk extends Module
 
         $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
 
-        $this->logger = new FileLogger();
+        // $this->logger = new FileLogger();
         // $this->logger->setFilename(_PS_ROOT_DIR_ . '/var/logs/lemonink.log');
     }
 
@@ -214,7 +215,7 @@ class LemonInk extends Module
             } else {
                 $productMaster->update();
             }
-        } else if (!empty($productMaster->master_id)) {
+        } elseif (!empty($productMaster->master_id)) {
             $productMaster->add();
         }
     }
@@ -356,8 +357,9 @@ class LemonInk extends Module
         return $params;
     }
 
-    private function watermarkParam($paramName, $orderId, $customer) {
-        switch ( $paramName ) {
+    private function watermarkParam($paramName, $orderId, $customer)
+    {
+        switch ($paramName) {
             case 'order_number':
                 return $orderId;
             case 'obfuscated_customer_email':
