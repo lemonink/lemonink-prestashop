@@ -237,7 +237,6 @@ class LemonInk extends Module
                         $remoteMaster = $this->getApiClient()->find('master', $productMaster->master_id);
 
                         $customer = new Customer((int) $order->id_customer);
-                        $orderLanguage = new Language((int) $order->id_lang);
 
                         $remoteUser = $this->getApiClient()->find('user', 'me');
 
