@@ -364,8 +364,14 @@ class LemonInk extends Module
                 return $this->obfuscateEmail($customer->email);
             case 'customer_email':
                 return $customer->email;
+            case 'customer_first_name':
+                return $customer->firstname;
+            case 'customer_last_name':
+                return $customer->lastname;
             case 'customer_name':
                 return implode(" ", array($customer->firstname, $customer->lastname));
+            case 'obfuscated_customer_name':
+                return implode(" ", array($customer->firstname, Tools::substr($customer->lastname, 0, 1) . "."));
         }
     }
 
