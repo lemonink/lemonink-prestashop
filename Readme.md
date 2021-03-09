@@ -2,8 +2,6 @@
 
 Watermark EPUB, MOBI and PDF files in your PrestaShop store using the LemonInk service.
 
-_**Work in progress**: this module is almost ready but needs some testing and polishing. We'll release it publicly as soon as we're confident it works well for our customers. If you're interested in early tests or wish to be notified when we release the module, email us at <hello@lemonink.co>._
-
 [LemonInk](https://www.lemonink.co/how-to-use/prestashop) is a cloud service used to secure digital books from piracy. It applies a digital watermark to each purchased ebook making it unique and traceable.
 
 Using this module, you can easily integrate LemonInk into your PrestaShop store just by marking products as downloadable and assigning a master file (the original ebook) to them.
