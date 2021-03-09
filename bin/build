@@ -18,6 +18,7 @@ bundle exec copyright-header \
   --add-path build/lemonink \
   --remove-path build/lemonink/vendor/ \
   --output-dir ./
+pandoc -o build/readme_en.pdf docs/addons-marketplace/readme_en.md
 cd build
 zip -q -r -X lemonink.zip lemonink
 
