@@ -2,7 +2,7 @@
 <module>
 	<name>lemonink</name>
 	<displayName><![CDATA[LemonInk Ebook Watermarking for PrestaShop]]></displayName>
-	<version><![CDATA[0.2.0]]></version>
+	<version><![CDATA[0.2.1]]></version>
 	<description><![CDATA[Watermark ebooks in EPUB, MOBI and PDF in your PrestaShop store using the LemonInk service.]]></description>
 	<author><![CDATA[LemonInk]]></author>
 	<tab><![CDATA[others]]></tab>
