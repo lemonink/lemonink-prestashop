@@ -12,18 +12,17 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/lemonink/lemonink-php.git",
-                "reference": "9c47f9ee36524000fe3fde292278c30f95cb08e9"
+                "reference": "81464410bbd07b3ddef7b50b5dac053f8042e4e6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/lemonink/lemonink-php/zipball/9c47f9ee36524000fe3fde292278c30f95cb08e9",
-                "reference": "9c47f9ee36524000fe3fde292278c30f95cb08e9",
+                "url": "https://api.github.com/repos/lemonink/lemonink-php/zipball/81464410bbd07b3ddef7b50b5dac053f8042e4e6",
+                "reference": "81464410bbd07b3ddef7b50b5dac053f8042e4e6",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.3"
             },
-            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -47,11 +46,7 @@
                 "api",
                 "watermarking"
             ],
-            "support": {
-                "issues": "https://github.com/lemonink/lemonink-php/issues",
-                "source": "https://github.com/lemonink/lemonink-php/tree/v1.0.0"
-            },
-            "time": "2021-02-17T09:03:51+00:00"
+            "time": "2021-10-01T11:18:46+00:00"
         }
     ],
     "packages-dev": [
@@ -130,7 +125,6 @@
                 "symfony/console": "^3.4",
                 "symfony/finder": "^3.4"
             },
-            "default-branch": true,
             "bin": [
                 "bin/autoindex"
             ],
@@ -174,7 +168,6 @@
             "require": {
                 "php": ">=5.3.0"
             },
-            "default-branch": true,
             "type": "library",
             "extra": {
                 "branch-alias": {
@@ -317,7 +310,6 @@
             "require-dev": {
                 "symfony/http-kernel": "^3.4|^4.0|^5.0"
             },
-            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -443,7 +435,6 @@
             "suggest": {
                 "ext-mbstring": "For best performance"
             },
-            "default-branch": true,
             "type": "library",
             "extra": {
                 "branch-alias": {
@@ -521,7 +512,6 @@
             "require": {
                 "php": ">=7.1"
             },
-            "default-branch": true,
             "type": "library",
             "extra": {
                 "branch-alias": {
@@ -600,5 +590,5 @@
         "php": ">=5.6.0"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.0.0"
+    "plugin-api-version": "1.1.0"
 }
