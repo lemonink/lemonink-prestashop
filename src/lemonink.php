@@ -50,7 +50,7 @@ class LemonInk extends Module
         return parent::install() &&
             Configuration::updateValue('LEMONINK_WATERMARKING_ORDER_STATE', 2) &&
             $this->registerHook('header') &&
-            $this->registerHook('backOfficeHeader') &&
+            $this->registerHook('displayBackOfficeHeader') &&
             $this->registerHook('displayAdminProductsExtra') &&
             $this->registerHook('actionOrderStatusPostUpdate') &&
             $this->registerHook('actionProductUpdate') &&
@@ -172,7 +172,7 @@ class LemonInk extends Module
     /**
     * Add the CSS & JavaScript files you want to be loaded in the BO.
     */
-    public function hookBackOfficeHeader()
+    public function hookDisplayBackOfficeHeader()
     {
         if (Tools::getValue('module_name') == $this->name) {
             $this->context->controller->addJS($this->_path.'views/js/back.js');
@@ -194,7 +194,7 @@ class LemonInk extends Module
         $id_product = $params['id_product'];
         $productMaster = ProductMaster::loadByProductId($id_product);
         $this->context->smarty->assign(array(
-            'master_id' => $productMaster->master_id
+            'master_id' => empty($productMaster) ? null : $productMaster->master_id
         ));
         return $this->display(__FILE__, 'views/templates/admin/product_form.tpl');
     }
